@@ -1,0 +1,70 @@
+[project]
+name = "token-budget-platform"
+version = "0.1.0"
+description = "A privacy-preserving token budget benchmarking platform."
+requires-python = ">=3.13,<3.14"
+dependencies = [
+  "Django==5.2.8",
+  "djangorestframework==3.16.1",
+  "gunicorn==23.0.0",
+  "psycopg[binary]==3.2.12",
+  "aws-cdk-lib==2.170.0",
+  "constructs==10.4.2",
+  "argon2-cffi==23.1.0",
+  "pyotp==2.9.0",
+]
+
+[dependency-groups]
+dev = [
+  "hypothesis==6.148.7",
+  "pytest==8.4.2",
+  "pytest-django==4.11.1",
+  "ruff==0.14.3",
+  "mypy==1.18.2",
+  "django-stubs==5.2.7",
+  "poethepoet==0.34.0",
+]
+
+[tool.uv]
+package = true
+default-groups = ["dev"]
+
+[tool.uv.sources]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.local"
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+src = ["src", "config", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.mypy]
+python_version = "3.13"
+plugins = ["mypy_django_plugin.main"]
+check_untyped_defs = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+no_implicit_optional = true
+
+[[tool.mypy.overrides]]
+module = ["debugpy", "debugpy.*", "boto3", "boto3.*", "botocore", "botocore.*"]
+ignore_missing_imports = true
+
+[tool.django-stubs]
+django_settings_module = "config.settings.local"
+
+[tool.poe.tasks]
+check = ["format-check", "lint", "typecheck", "test"]
+format = "ruff format ."
+format-check = "ruff format --check ."
+lint = "ruff check ."
+typecheck = "mypy config src tests"
+test = "pytest -q"
+check-fix = ["format", "lint --fix", "typecheck", "test"]
+verify = ["check"]

@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block page_title %}Submit a Token Budget | Token Budget Platform{% endblock %}
+{% block heading %}Submit a Token Budget{% endblock %}
+
+{% block content %}
+  {% if errors %}
+  <section class="error-summary" role="alert" aria-labelledby="error-summary-heading" tabindex="-1">
+    <h2 id="error-summary-heading">There is a problem</h2>
+    <ul>
+      {% for error in errors %}
+      <li>{{ error.message }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <section aria-labelledby="submit-intro-heading">
+    <h2 id="submit-intro-heading">What you can publish</h2>
+    <p>Share an organizational AI token budget benchmark. All fields marked required must be provided;
+    optional usage, cost, and contact fields improve the benchmark but are never required.
+    You will see exactly what would be published before confirming.</p>
+  </section>
+
+  <form method="post" action="{% url 'submit' %}" class="submission-form" novalidate>
+    {% csrf_token %}
+
+    <fieldset>
+      <legend>Organization</legend>
+      <p class="field">
+        <label for="id_organization_name">Organization name <span aria-hidden="true">*</span></label>
+        <input id="id_organization_name" name="organization_name" type="text" maxlength="200" required
+               value="{{ submitted.organization_name|default_if_none:'' }}">
+      </p>
+      <p class="field">
+        <label for="id_industry">Industry <span aria-hidden="true">*</span></label>
+        <input id="id_industry" name="industry" type="text" maxlength="200" required
+               value="{{ submitted.industry|default_if_none:'' }}">
+      </p>
+      <p class="field">
+        <label for="id_size_band_id">Organization size band <span aria-hidden="true">*</span></label>
+        <select id="id_size_band_id" name="size_band_id" required>
+          <option value="">Select a size band</option>
+          {% for option in filter_options.size_band %}<option value="{{ option.id }}">{{ option.label }}</option>{% endfor %}
+        </select>
+      </p>
+      <p class="field">
+        <label for="id_region_id">Geographic region <span aria-hidden="true">*</span></label>
+        <select id="id_region_id" name="region_id" required>
+          <option value="">Select a region</option>
+          {% for option in filter_options.region_id %}<option value="{{ option.id }}">{{ option.label }}</option>{% endfor %}
+        </select>
+      </p>
+    </fieldset>
+
+    <fieldset>
+      <legend>AI workload</legend>
+      <p class="field">
+        <label for="id_model_provider_id">Model provider <span aria-hidden="true">*</span></label>
+        <select id="id_model_provider_id" name="model_provider_id" required>
+          <option value="">Select a provider</option>
+          {% for option in filter_options.model_provider %}<option value="{{ option.id }}">{{ option.label }}</option>{% endfor %}
+        </select>
+      </p>
+      <p class="field">
+        <label for="id_ai_product_id">AI product <span aria-hidden="true">*</span></label>
+        <select id="id_ai_product_id" name="ai_product_id" required>
+          <option value="">Select a product</option>
+          {% for option in filter_options.ai_product %}<option value="{{ option.id }}">{{ option.label }}</option>{% endfor %}
+        </select>
+      </p>
+      <p class="field">
+        <label for="id_workload_category_id">Workload category <span aria-hidden="true">*</span></label>
+        <select id="id_workload_category_id" name="workload_category_id" required>
+          <option value="">Select a workload category</option>
+          {% for option in filter_options.workload_category %}<option value="{{ option.id }}">{{ option.label }}</option>{% endfor %}
+        </select>
+      </p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Budget and reporting period</legend>
+      <p class="field">
+        <label for="id_budget_scope">Budget scope <span aria-hidden="true">*</span></label>
+        <select id="id_budget_scope" name="budget_scope" required>
+          <option value="">Select a scope</option>
+          {% for option in filter_options.budget_scope %}<option value="{{ option.value }}">{{ option.label }}</option>{% endfor %}
+        </select>
+      </p>
+      <p class="field">
+        <label for="id_token_budget">Token budget (tokens per period) <span aria-hidden="true">*</span></label>
+        <input id="id_token_budget" name="token_budget" type="number" min="1" step="1" required
+               value="{{ submitted.token_budget|default_if_none:'' }}">
+      </p>
+      <p class="field">
+        <label for="id_seat_count">Seat count (for per-seat scopes)</label>
+        <input id="id_seat_count" name="seat_count" type="number" min="1" step="1"
+               value="{{ submitted.seat_count|default_if_none:'' }}">
+      </p>
+      <p class="field">
+        <label for="id_workload_count">Workload count (for workload scopes)</label>
+        <input id="id_workload_count" name="workload_count" type="number" min="1" step="1"
+               value="{{ submitted.workload_count|default_if_none:'' }}">
+      </p>
+      <p class="field">
+        <label for="id_reporting_start">Reporting period start <span aria-hidden="true">*</span></label>
+        <input id="id_reporting_start" name="reporting_start" type="date" required
+               value="{{ submitted.reporting_start|default_if_none:'' }}">
+      </p>
+      <p class="field">
+        <label for="id_reporting_end">Reporting period end <span aria-hidden="true">*</span></label>
+        <input id="id_reporting_end" name="reporting_end" type="date" required
+               value="{{ submitted.reporting_end|default_if_none:'' }}">
+      </p>
+      <p class="field">
+        <label for="id_reporting_timezone">Reporting timezone</label>
+        <input id="id_reporting_timezone" name="reporting_timezone" type="text" maxlength="64" value="UTC">
+      </p>
+      <p class="field">
+        <label for="id_source_date">Source date <span aria-hidden="true">*</span></label>
+        <input id="id_source_date" name="source_date" type="date" required
+               value="{{ submitted.source_date|default_if_none:'' }}">
+      </p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Optional usage and cost</legend>
+      <p class="field">
+        <label for="id_token_usage">Actual token usage</label>
+        <input id="id_token_usage" name="token_usage" type="number" min="0" step="1"
+               value="{{ submitted.token_usage|default_if_none:'' }}">
+      </p>
+      <p class="field">
+        <label for="id_cost_minor_units">Cost (minor currency units)</label>
+        <input id="id_cost_minor_units" name="cost_minor_units" type="number" min="0" step="1"
+               value="{{ submitted.cost_minor_units|default_if_none:'' }}">
+      </p>
+      <p class="field">
+        <label for="id_cost_currency">Currency (ISO 4217)</label>
+        <input id="id_cost_currency" name="cost_currency" type="text" maxlength="3"
+               value="{{ submitted.cost_currency|default_if_none:'' }}">
+      </p>
+      <p class="field">
+        <label for="id_cost_basis">Cost basis</label>
+        <input id="id_cost_basis" name="cost_basis" type="text" maxlength="200"
+               value="{{ submitted.cost_basis|default_if_none:'' }}">
+      </p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Attribution and notes</legend>
+      <p class="field">
+        <label for="id_contributor_attribution">Contributor attribution</label>
+        <select id="id_contributor_attribution" name="contributor_attribution">
+          <option value="ANONYMOUS">Anonymous</option>
+          <option value="ORGANIZATION">Named organization</option>
+        </select>
+      </p>
+      <p class="field">
+        <label for="id_methodology_notes">Methodology notes</label>
+        <textarea id="id_methodology_notes" name="methodology_notes" rows="4" maxlength="4000">{{ submitted.methodology_notes|default_if_none:'' }}</textarea>
+      </p>
+      <p class="field">
+        <label for="id_contact_email">Contact email (optional, for link recovery only)</label>
+        <input id="id_contact_email" name="contact_email" type="email" maxlength="320"
+               value="{{ submitted.contact_email|default_if_none:'' }}"
+               aria-describedby="id_contact_email_hint">
+        <span id="id_contact_email_hint" class="hint">Used only to re-send a lost management link; stored encrypted and never published.</span>
+      </p>
+    </fieldset>
+
+    <p class="form-actions">
+      <button type="submit" class="button">Review and confirm</button>
+    </p>
+  </form>
+{% endblock %}

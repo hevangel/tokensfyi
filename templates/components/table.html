@@ -1,0 +1,16 @@
+{% with table_description_id=table_id|add:'-description' %}
+<section class="table-section" aria-labelledby="{{ table_id }}-caption">
+  <p id="{{ table_description_id }}" class="table-instructions">{{ table_description|default:'Use the table headings to understand each value.' }}</p>
+  <div class="table-scroll" tabindex="0" role="region" aria-labelledby="{{ table_id }}-caption" aria-describedby="{{ table_description_id }}">
+    <table id="{{ table_id }}">
+      <caption id="{{ table_id }}-caption">{{ table_caption }}</caption>
+      <thead>
+        <tr>{% for header in table_headers %}<th scope="col">{{ header }}</th>{% endfor %}</tr>
+      </thead>
+      <tbody>
+        {% for row in table_rows %}<tr>{% for cell in row %}<td>{{ cell }}</td>{% endfor %}</tr>{% empty %}<tr><td colspan="{{ table_headers|length }}">No records are available.</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endwith %}

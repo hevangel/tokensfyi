@@ -1,0 +1,266 @@
+openapi: "3.1.0"
+info:
+  title: Token Budget Platform API
+  version: "1.0.0"
+  description: >-
+    Public and authenticated JSON API for the Token Budget Platform.
+    All endpoints are under /api/v1. Identifiers use UUID format.
+    Dates use ISO 8601. Decimal values are serialized as strings.
+    State-changing requests require CSRF tokens for browser sessions,
+    Idempotency-Key headers, and If-Match for optimistic concurrency.
+  contact:
+    name: Token Budget Platform
+servers:
+  - url: /api/v1
+    description: Versioned API root
+
+paths:
+  /health/live:
+    get:
+      operationId: healthLive
+      summary: Process liveness check
+      tags: [Health]
+      responses:
+        "200":
+          description: Process is alive
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /health/ready:
+    get:
+      operationId: healthReady
+      summary: Readiness and dependency status
+      tags: [Health]
+      responses:
+        "200":
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+        "503":
+          description: Service not ready
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/ProblemDetail"
+
+  /records:
+    get:
+      operationId: listRecords
+      summary: Search, filter, sort, and paginate published records
+      tags: [Records]
+      parameters:
+        - $ref: "#/components/parameters/SearchQuery"
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Paginated record list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+
+  /records/{id}:
+    get:
+      operationId: getRecord
+      summary: Get a published record by ID
+      tags: [Records]
+      parameters:
+        - $ref: "#/components/parameters/RecordId"
+        - $ref: "#/components/parameters/CorrelationId"
+      responses:
+        "200":
+          description: Record details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RecordDetail"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+components:
+  parameters:
+    RecordId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SearchQuery:
+      name: q
+      in: query
+      required: false
+      schema:
+        type: string
+        maxLength: 200
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      schema:
+        type: string
+    CorrelationId:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema:
+        type: string
+        format: uuid
+
+  headers:
+    X-Correlation-Id:
+      description: Unique request correlation identifier
+      schema:
+        type: string
+        format: uuid
+    X-Content-Type-Options:
+      description: Prevents MIME sniffing
+      schema:
+        type: string
+        enum: [nosniff]
+    ETag:
+      description: Entity version tag for optimistic concurrency
+      schema:
+        type: string
+
+  schemas:
+    ProblemDetail:
+      type: object
+      description: RFC 9457 Problem Details for HTTP APIs
+      required: [type, title, status]
+      properties:
+        type:
+          type: string
+          format: uri
+          description: URI reference identifying the problem type
+        title:
+          type: string
+          description: Short human-readable summary
+        status:
+          type: integer
+          description: HTTP status code
+        detail:
+          type: string
+          description: Human-readable explanation specific to this occurrence
+        instance:
+          type: string
+          format: uri
+          description: URI reference identifying this specific occurrence
+        correlation_id:
+          type: string
+          format: uuid
+          description: Request correlation identifier for tracing
+
+    HealthResponse:
+      type: object
+      required: [status, version]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+        version:
+          type: string
+
+    ReadinessResponse:
+      type: object
+      required: [status, version, dependencies]
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded]
+        version:
+          type: string
+        dependencies:
+          type: object
+          additionalProperties:
+            type: string
+
+    RecordSummary:
+      type: object
+      required: [id, organization, token_budget, reporting_start, reporting_end]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organization:
+          type: string
+        token_budget:
+          type: string
+          description: Decimal value as string
+        reporting_start:
+          type: string
+          format: date
+        reporting_end:
+          type: string
+          format: date
+        verification_status:
+          type: string
+
+    RecordListResponse:
+      type: object
+      required: [records, count]
+      properties:
+        records:
+          type: array
+          items:
+            $ref: "#/components/schemas/RecordSummary"
+        count:
+          type: integer
+        next_cursor:
+          type: string
+          nullable: true
+
+    RecordDetail:
+      type: object
+      required: [id, organization, token_budget]
+      properties:
+        id:
+          type: string
+          format: uuid
+        organization:
+          type: string
+        token_budget:
+          type: string
+        reporting_start:
+          type: string
+          format: date
+        reporting_end:
+          type: string
+          format: date
+        verification_status:
+          type: string
+        etag:
+          type: string
+
+  responses:
+    BadRequest:
+      description: Invalid request parameters
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+    NotFound:
+      description: Resource not found
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+    Conflict:
+      description: Optimistic concurrency conflict
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"
+    TooManyRequests:
+      description: Rate limit exceeded
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetail"

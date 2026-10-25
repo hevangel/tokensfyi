@@ -1,0 +1,10 @@
+<dialog id="{{ dialog_id }}" class="dialog" aria-labelledby="{{ dialog_id }}-title" data-accessible-dialog>
+  <div class="dialog__content">
+    <h2 id="{{ dialog_id }}-title">{{ dialog_title }}</h2>
+    {% if dialog_body %}<p>{{ dialog_body }}</p>{% endif %}
+    {% block dialog_content %}{% endblock %}
+    <form method="dialog">
+      <button type="submit" value="cancel">Close</button>
+    </form>
+  </div>
+</dialog>

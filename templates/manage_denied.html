@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block page_title %}Link Not Accepted | Token Budget Platform{% endblock %}
+{% block heading %}Link not accepted{% endblock %}
+
+{% block content %}
+  <section aria-labelledby="denied-heading">
+    <h2 id="denied-heading">This management link is invalid or has expired</h2>
+    <p>Management links expire and can be revoked. If you need a new link and bound a contact
+    email to your submission, use the recovery option on the
+    <a href="{% url 'manage' %}">management landing page</a>.</p>
+  </section>
+{% endblock %}

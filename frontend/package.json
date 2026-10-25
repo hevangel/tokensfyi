@@ -1,0 +1,7 @@
+{
+  "name": "token-budget-platform-frontend",
+  "private": true,
+  "type": "module",
+  "scripts": { "build": "node build.mjs" },
+  "devDependencies": { "typescript": "5.7.3" }
+}

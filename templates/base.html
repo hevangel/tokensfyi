@@ -1,0 +1,34 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block page_title %}Token Budget Platform{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script type="module" src="{% static 'dist/app.js' %}"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Skip to main content</a>
+  <header class="site-header">
+    <div class="container site-header__inner">
+      <a class="brand" href="/">Token Budget Platform home</a>
+      <nav aria-label="Primary navigation">
+        <ul class="navigation-list">
+          <li><a href="/browse/">Browse token budgets</a></li>
+          <li><a href="/submit/">Submit a token budget</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <main id="main-content" class="container page-content" tabindex="-1">
+    {% block page_heading %}<h1>{% block heading %}Token Budget Platform{% endblock %}</h1>{% endblock %}
+    {% block live_region %}{% include "components/live_region.html" %}{% endblock %}
+    {% block error_summary %}{% include "components/error_summary.html" %}{% endblock %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer container">
+    <p>Token Budget Platform provides public benchmarks for organizational AI token budgets.</p>
+  </footer>
+</body>
+</html>

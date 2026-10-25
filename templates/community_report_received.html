@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block page_title %}Report Received | Token Budget Platform{% endblock %}
+{% block heading %}Report received{% endblock %}
+
+{% block content %}
+  <section aria-labelledby="received-heading" aria-live="polite">
+    <h2 id="received-heading">Thank you — your report is in the review queue</h2>
+    {% if outcome.suppressed %}
+    <p class="status status-disputed">Because your report alleges personal-data or sensitive-data
+    exposure, the record has been removed from public display while moderators review the report.</p>
+    {% elif outcome.disputed %}
+    <p>The record now carries a public Disputed indicator while the report is under review.</p>
+    {% endif %}
+    <p>A moderator will review the report and decide the outcome. No personal information about
+    you was collected with this report.</p>
+    <p><a href="{% url 'browse' %}">Back to browse</a></p>
+  </section>
+{% endblock %}

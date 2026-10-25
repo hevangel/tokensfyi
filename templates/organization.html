@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block page_title %}{{ profile.name }} — Token Budget Platform{% endblock %}
+{% block heading %}{{ profile.name }}{% endblock %}
+
+{% block content %}
+  <section aria-labelledby="profile-heading">
+    <h2 id="profile-heading">Organization profile</h2>
+    <dl class="profile-metadata">
+      <dt>Industry</dt><dd>{{ profile.industry }}</dd>
+      <dt>Organization size band</dt><dd>{{ profile.size_band }}</dd>
+      <dt>Geographic region</dt><dd>{{ profile.region }}</dd>
+      <dt>Published records</dt><dd>{{ profile.eligible_record_count }}</dd>
+    </dl>
+    {% if profile.merged_from %}
+    <p>This profile includes records previously published under
+      {% for name in profile.merged_from %}{{ name }}{% if not forloop.last %}, {% endif %}{% endfor %}.
+    </p>
+    {% endif %}
+  </section>
+
+  <section aria-labelledby="aggregates-heading">
+    <h2 id="aggregates-heading">Aggregate token budgets</h2>
+    <p>{{ profile.disclosure.rule_explanation }} Aggregation dimensions: {{ profile.disclosure.dimensions|join:", " }}.
+    Based on {{ profile.disclosure.contributing_record_count }} published record{{ profile.disclosure.contributing_record_count|pluralize }}.</p>
+    {% if profile.aggregates %}
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Aggregate token budgets" aria-describedby="aggregate-table-description">
+      <p id="aggregate-table-description" class="table-instructions">This data table may scroll horizontally on narrow screens.</p>
+      <table>
+        <caption>Aggregates by grouping dimension</caption>
+        <thead>
+          <tr>
+            <th scope="col">Dimension</th>
+            <th scope="col">Group</th>
+            <th scope="col">Records</th>
+            <th scope="col">Minimum</th>
+            <th scope="col">Median</th>
+            <th scope="col">Maximum</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for group in profile.aggregates %}
+          <tr>
+            <td>{{ group.dimension_key }}</td>
+            <td>{{ group.dimension_values.value }}</td>
+            <td>{{ group.count }}</td>
+            {% if group.suppressed %}
+            <td colspan="3">{{ group.suppression_reason }}</td>
+            {% else %}
+            <td>{{ group.minimum }}</td>
+            <td>{{ group.median }}</td>
+            <td>{{ group.maximum }}</td>
+            {% endif %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p>No published records are available for aggregation yet.</p>
+    {% endif %}
+  </section>
+
+  <section aria-labelledby="records-heading">
+    <h2 id="records-heading">Published records</h2>
+    {% if profile.records %}
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Published records for {{ profile.name }}">
+      <table>
+        <caption>Records for {{ profile.name }}</caption>
+        <thead>
+          <tr>
+            <th scope="col">AI Product</th>
+            <th scope="col">Workload Category</th>
+            <th scope="col">Budget Scope</th>
+            <th scope="col">Token Budget</th>
+            <th scope="col">Reporting Period</th>
+            <th scope="col">Verification Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for record in profile.records %}
+          <tr>
+            <td><a href="{% url 'record-detail' record_id=record.public_reference %}">{{ record.ai_product }}</a></td>
+            <td>{{ record.workload_category }}</td>
+            <td>{{ record.budget_scope }}</td>
+            <td>{{ record.token_budget }}</td>
+            <td>{{ record.reporting_start|date:"Y-m-d" }} to {{ record.reporting_end|date:"Y-m-d" }}</td>
+            <td>{% include "components/status.html" with status_kind=record.verification_status|lower status_icon="●" status_label=record.verification_status %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p>No published records for this organization yet.</p>
+    {% endif %}
+  </section>
+
+  <p><a href="{% url 'browse' %}">Back to browse</a></p>
+{% endblock %}

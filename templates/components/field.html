@@ -1,0 +1,14 @@
+<div class="form-field{% if field_error %} form-field--invalid{% endif %}">
+  <label for="{{ field_id }}">{{ field_label }}{% if field_required %} <span aria-hidden="true">(required)</span>{% endif %}</label>
+  {% if field_help %}<p id="{{ field_id }}-help" class="field-help">{{ field_help }}</p>{% endif %}
+  {% if field_type == "textarea" %}
+    <textarea id="{{ field_id }}" name="{{ field_name }}"{% if field_required %} required{% endif %}{% if field_error %} aria-invalid="true"{% endif %}{% if field_help %} aria-describedby="{{ field_id }}-help{% if field_error %} {{ field_id }}-error{% endif %}"{% elif field_error %} aria-describedby="{{ field_id }}-error"{% endif %}>{{ field_value }}</textarea>
+  {% elif field_type == "select" %}
+    <select id="{{ field_id }}" name="{{ field_name }}"{% if field_required %} required{% endif %}{% if field_error %} aria-invalid="true"{% endif %}{% if field_help %} aria-describedby="{{ field_id }}-help{% if field_error %} {{ field_id }}-error{% endif %}"{% elif field_error %} aria-describedby="{{ field_id }}-error"{% endif %}>
+      {% for option in field_options %}<option value="{{ option.value }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>{% endfor %}
+    </select>
+  {% else %}
+    <input id="{{ field_id }}" name="{{ field_name }}" type="{{ field_type|default:'text' }}" value="{{ field_value }}"{% if field_required %} required{% endif %}{% if field_error %} aria-invalid="true"{% endif %}{% if field_help %} aria-describedby="{{ field_id }}-help{% if field_error %} {{ field_id }}-error{% endif %}"{% elif field_error %} aria-describedby="{{ field_id }}-error"{% endif %}>
+  {% endif %}
+  {% if field_error %}<p id="{{ field_id }}-error" class="field-error" role="alert">{{ field_error }}</p>{% endif %}
+</div>

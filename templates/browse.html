@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+
+{% block page_title %}Browse Token Budgets{% if page.page_number > 1 %} — Page {{ page.page_number }}{% endif %} | Token Budget Platform{% endblock %}
+{% block heading %}Browse Token Budgets{% endblock %}
+
+{% block content %}
+  <section aria-labelledby="scope-explanation-heading">
+    <h2 id="scope-explanation-heading" class="visually-hidden">Scope explanation</h2>
+    <p>{{ page.scope_explanation }}</p>
+  </section>
+
+  {% if page.filter_errors %}
+  <section class="error-summary" role="alert" aria-labelledby="filter-errors-heading" tabindex="-1">
+    <h2 id="filter-errors-heading">There is a problem with your search</h2>
+    <ul>
+      {% for error in page.filter_errors %}
+      <li>{{ error }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <section class="filter-section" aria-labelledby="filter-heading">
+    <h2 id="filter-heading">Search and filter</h2>
+    <form method="get" action="{% url 'browse' %}" class="filter-form">
+      <p id="journey-query-description">Search matches are case-insensitive and match text contained anywhere in the organization, provider, or product name.</p>
+      <div class="filter-grid">
+        <p class="filter-field">
+          <label for="journey-query">Organization</label>
+          <input id="journey-query" name="organization" type="search" size="24" maxlength="200"
+                 value="{{ page.filters.organization }}" aria-describedby="journey-query-description">
+        </p>
+        <p class="filter-field">
+          <label for="filter-provider">Model provider</label>
+          <input id="filter-provider" name="provider" type="search" size="20" maxlength="200"
+                 value="{{ page.filters.provider }}">
+        </p>
+        <p class="filter-field">
+          <label for="filter-product">AI product</label>
+          <input id="filter-product" name="product" type="search" size="20" maxlength="200"
+                 value="{{ page.filters.product }}">
+        </p>
+        <p class="filter-field">
+          <label for="filter-workload">Workload category</label>
+          <input id="filter-workload" name="workload" type="text" size="20" maxlength="200" list="workload-options"
+                 value="{{ page.filters.workload }}">
+          <datalist id="workload-options">
+            {% for option in filter_options.workload_category %}<option value="{{ option.value }}">{{ option.label }}</option>{% endfor %}
+          </datalist>
+        </p>
+        <p class="filter-field">
+          <label for="filter-region">Region</label>
+          <input id="filter-region" name="region" type="text" size="20" maxlength="200" list="region-options"
+                 value="{{ page.filters.region }}">
+          <datalist id="region-options">
+            {% for option in filter_options.region %}<option value="{{ option.value }}">{{ option.label }}</option>{% endfor %}
+          </datalist>
+        </p>
+        <p class="filter-field">
+          <label for="filter-scope">Budget scope</label>
+          <select id="filter-scope" name="budget_scope">
+            <option value="">All scopes</option>
+            {% for option in filter_options.budget_scope %}
+            <option value="{{ option.value }}" {% if page.filters.budget_scope == option.value %}selected{% endif %}>{{ option.label }}</option>
+            {% endfor %}
+          </select>
+        </p>
+        <p class="filter-field">
+          <label for="filter-status">Verification status</label>
+          <select id="filter-status" name="verification_status">
+            <option value="">All statuses</option>
+            {% for option in filter_options.verification_status %}
+            <option value="{{ option.value }}" {% if page.filters.verification_status == option.value %}selected{% endif %}>{{ option.label }}</option>
+            {% endfor %}
+          </select>
+        </p>
+        <p class="filter-field">
+          <label for="filter-sort">Sort by</label>
+          <select id="filter-sort" name="sort">
+            <option value="newest" {% if page.filters.sort == "newest" %}selected{% endif %}>Newest first</option>
+            <option value="budget_desc" {% if page.filters.sort == "budget_desc" %}selected{% endif %}>Token budget (highest first)</option>
+            <option value="budget_asc" {% if page.filters.sort == "budget_asc" %}selected{% endif %}>Token budget (lowest first)</option>
+            <option value="period_end_desc" {% if page.filters.sort == "period_end_desc" %}selected{% endif %}>Reporting period end (latest first)</option>
+            <option value="organization" {% if page.filters.sort == "organization" %}selected{% endif %}>Organization name</option>
+          </select>
+        </p>
+      </div>
+      <p class="form-actions">
+        <button type="submit" class="button">Apply search</button>
+        {% if not page.filters.is_default %}
+        <a class="button-link" href="{% url 'browse' %}">Clear all criteria</a>
+        {% endif %}
+      </p>
+    </form>
+  </section>
+
+  {% if page.is_empty_dataset %}
+  <section aria-labelledby="empty-state-heading">
+    <h2 id="empty-state-heading">No records available</h2>
+    <p>No token-budget records have been approved for public display yet.</p>
+    <p><a href="/submit/">Submit the first token-budget benchmark</a> to begin building the dataset.</p>
+  </section>
+  {% elif page.total_count == 0 %}
+  <section aria-labelledby="no-match-heading" aria-live="polite">
+    <h2 id="no-match-heading">No records match your criteria</h2>
+    <p>No published records match the active search criteria. Try broadening the search or
+    <a href="{% url 'browse' %}">clear all criteria</a> to see the full dataset.</p>
+  </section>
+  {% else %}
+
+  <p class="result-count" aria-live="polite">Showing {{ page.total_count }} matching published record{{ page.total_count|pluralize }}. Page {{ page.page_number }} of {{ page.total_pages }}.</p>
+
+  <section class="table-section" aria-labelledby="browse-table-caption">
+    <p id="browse-table-description" class="table-instructions">This data table may scroll horizontally on narrow screens. Use the column headings to understand each value.</p>
+    <div class="table-scroll" tabindex="0" role="region" aria-labelledby="browse-table-caption" aria-describedby="browse-table-description">
+      <table id="journey-example">
+        <caption id="browse-table-caption">Published token-budget records</caption>
+        <thead>
+          <tr>
+            {% for heading in page.headings %}
+            <th scope="col">{{ heading }}</th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for record in page.records %}
+          <tr>
+            <td><a href="{% url 'record-detail' record_id=record.public_reference %}">{{ record.organization_name }}</a></td>
+            <td>{{ record.model_provider }}</td>
+            <td>{{ record.ai_product }}</td>
+            <td>{{ record.workload_category }}</td>
+            <td>{{ record.budget_scope }}</td>
+            <td>{{ record.token_budget }}</td>
+            <td>{{ record.reporting_start|date:"Y-m-d" }} to {{ record.reporting_end|date:"Y-m-d" }}</td>
+            <td>{{ record.geographic_region }}</td>
+            <td>{% include "components/status.html" with status_kind=record.verification_status|lower status_icon="●" status_label=record.verification_status %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  {% if page.total_pages > 1 %}
+  <nav aria-label="Pagination">
+    <ul class="pagination">
+      {% if page.has_previous %}
+      <li><a href="?{{ page.filters.query_string }}&page={{ page.page_number|add:"-1" }}">Previous</a></li>
+      {% endif %}
+      <li aria-current="page">Page {{ page.page_number }} of {{ page.total_pages }}</li>
+      {% if page.has_next %}
+      <li><a href="?{{ page.filters.query_string }}&page={{ page.page_number|add:"1" }}">Next</a></li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+
+  {% endif %}
+
+  <section aria-labelledby="status-definitions-heading">
+    <h2 id="status-definitions-heading">Verification status definitions</h2>
+    <dl class="status-definitions">
+      {% for status, definition in page.status_definitions.items %}
+      <dt>{% include "components/status.html" with status_kind=status|lower status_icon="●" status_label=status %}</dt>
+      <dd>{{ definition }}</dd>
+      {% endfor %}
+    </dl>
+  </section>
+{% endblock %}

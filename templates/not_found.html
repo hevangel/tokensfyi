@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block page_title %}Page not found | Token Budget Platform{% endblock %}
+{% block heading %}Page not found{% endblock %}
+
+{% block content %}
+  <section aria-labelledby="not-found-heading">
+    <h2 id="not-found-heading">We could not find that page</h2>
+    <p>The page may have been moved, or the item is not publicly available.</p>
+    <p><a href="{% url 'browse' %}">Browse published token-budget benchmarks</a> or return to the
+    <a href="{% url 'home' %}">home page</a>.</p>
+  </section>
+{% endblock %}

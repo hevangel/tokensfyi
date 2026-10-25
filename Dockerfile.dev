@@ -1,0 +1,17 @@
+# Development image: supports source mount, debugpy attachment, and fast iteration.
+FROM python:3.13.7-slim-bookworm
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app/src \
+    DJANGO_SETTINGS_MODULE=config.settings.local
+
+WORKDIR /app
+COPY pyproject.toml uv.lock ./
+RUN pip install --no-cache-dir uv==0.9.28 \
+    && uv sync --frozen --no-install-project \
+    && uv pip install debugpy==1.8.14
+
+# Source is mounted at /app via compose volume; no COPY needed for dev.
+EXPOSE 8000 5678
+CMD ["uv", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]

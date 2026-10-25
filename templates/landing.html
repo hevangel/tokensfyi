@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block page_title %}Token Budget Platform — AI Token Budget Benchmarks{% endblock %}
+{% block heading %}Token Budget Platform{% endblock %}
+
+{% block content %}
+  <section aria-labelledby="scope-heading">
+    <h2 id="scope-heading">What this product covers</h2>
+    <p>{{ scope_explanation }}</p>
+  </section>
+
+  <section aria-labelledby="dataset-heading">
+    <h2 id="dataset-heading">Dataset overview</h2>
+    <dl class="dataset-summary">
+      <dt>Published benchmarks</dt>
+      <dd>{{ published_count }}</dd>
+      <dt>Most recent update</dt>
+      <dd>{% if last_updated %}{{ last_updated|date:"N j, Y" }}{% else %}No records published yet{% endif %}</dd>
+    </dl>
+  </section>
+
+  <section aria-labelledby="start-heading">
+    <h2 id="start-heading">Get started</h2>
+    <p><a href="{% url 'browse-records' %}">Browse published token-budget benchmarks</a> or <a href="/submit/">submit a token-budget benchmark</a>.</p>
+  </section>
+{% endblock %}

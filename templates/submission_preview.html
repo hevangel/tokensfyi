@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block page_title %}Review Your Submission | Token Budget Platform{% endblock %}
+{% block heading %}Review your submission{% endblock %}
+
+{% block content %}
+  <section aria-labelledby="preview-heading">
+    <h2 id="preview-heading">This is exactly what would be published</h2>
+    <p>The preview below is generated through the same projection used for published records,
+    so nothing you have not confirmed here can appear publicly.</p>
+    <dl class="profile-metadata">
+      <dt>Organization</dt><dd>{{ preview.organization_name }} ({{ preview.organization_size_band }}, {{ preview.organization_region }})</dd>
+      <dt>Industry</dt><dd>{{ preview.organization_industry }}</dd>
+      <dt>Model provider</dt><dd>{{ preview.model_provider }}</dd>
+      <dt>AI product</dt><dd>{{ preview.ai_product }}</dd>
+      <dt>Workload category</dt><dd>{{ preview.workload_category }}</dd>
+      <dt>Budget scope</dt><dd>{{ preview.budget_scope }}</dd>
+      <dt>Token budget</dt><dd>{{ preview.token_budget }}</dd>
+      <dt>Input token allocation</dt><dd>{{ preview.input_tokens|default_if_none:"Not provided" }}</dd>
+      <dt>Output token allocation</dt><dd>{{ preview.output_tokens|default_if_none:"Not provided" }}</dd>
+      <dt>Reporting period</dt><dd>{{ preview.reporting_start }} to {{ preview.reporting_end }} ({{ preview.reporting_timezone }})</dd>
+      <dt>Token usage</dt><dd>{{ preview.token_usage|default_if_none:"Not provided" }}</dd>
+      <dt>Cost</dt><dd>{{ preview.cost_minor_units|default_if_none:"Not provided" }}</dd>
+      <dt>Source date</dt><dd>{{ preview.source_date }}</dd>
+      <dt>Verification status at publication</dt><dd>UNVERIFIED — until a moderator reviews evidence</dd>
+      <dt>Attribution</dt><dd>{{ preview.contributor_attribution }}</dd>
+      <dt>Methodology notes</dt><dd>{{ preview.methodology_notes|default_if_none:"None" }}</dd>
+    </dl>
+  </section>
+
+  <section aria-labelledby="confirm-heading">
+    <h2 id="confirm-heading">Confirm</h2>
+    <p>Confirming creates your submission in the moderation queue. You will receive a private
+    management link shown <strong>only once</strong> — store it somewhere safe; it is the only way
+    to manage or withdraw this submission later.</p>
+    <form method="post" action="{% url 'submit-confirm' %}" class="confirm-form">
+      {% csrf_token %}
+      <input type="hidden" name="draft_id" value="{{ draft_id }}">
+      <input type="hidden" name="capability_token" value="{{ capability_token }}">
+      <input type="hidden" name="confirm" value="1">
+      <p class="form-actions">
+        <button type="submit" name="action" value="confirm" class="button">Confirm submission</button>
+        <a class="button-link" href="{% url 'submit' %}">Go back and edit</a>
+      </p>
+    </form>
+  </section>
+{% endblock %}

@@ -1,0 +1,132 @@
+name: token-budget-platform
+
+services:
+  postgres:
+    image: postgres:16.4-bookworm
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-token_budget}
+      POSTGRES_USER: ${POSTGRES_USER:-token_budget}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local-only-password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:RELEASE.2024-10-29T16-01-48Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-local-minio-user}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-local-only-password}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  clamav:
+    image: clamav/clamav:1.4.3
+    expose:
+      - "3310"
+    healthcheck:
+      test: ["CMD", "clamdcheck"]
+      interval: 10s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
+
+  mailpit:
+    image: axllent/mailpit:v1.21.8
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8025/api/v1/info"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: uv run python -Xfrozen_modules=off manage.py runserver 0.0.0.0:8000
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.local
+      DJANGO_DEBUG: "1"
+      SECRET_KEY: ${SECRET_KEY:-local-compose-only-not-a-secret}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-token_budget}:${POSTGRES_PASSWORD:-local-only-password}@postgres:5432/${POSTGRES_DB:-token_budget}
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-local-minio-user}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-local-only-password}
+      MINIO_BUCKET: ${MINIO_BUCKET:-evidence-local}
+      CLAMAV_HOST: clamav
+      CLAMAV_PORT: "3310"
+      MAILPIT_HOST: mailpit
+      MAILPIT_PORT: "1025"
+      DEBUGPY_ENABLE: ${DEBUGPY_ENABLE:-0}
+      DEBUGPY_PORT: "5678"
+      # Prevent any AWS SDK calls from local development (Req 13.3)
+      AWS_DEFAULT_REGION: ""
+      AWS_ACCESS_KEY_ID: ""
+      AWS_SECRET_ACCESS_KEY: ""
+    ports:
+      - "8000:8000"
+      - "5678:5678"
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      clamav:
+        condition: service_healthy
+      mailpit:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: uv run python manage.py worker
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.local
+      DJANGO_DEBUG: "1"
+      SECRET_KEY: ${SECRET_KEY:-local-compose-only-not-a-secret}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-token_budget}:${POSTGRES_PASSWORD:-local-only-password}@postgres:5432/${POSTGRES_DB:-token_budget}
+      ALLOWED_HOSTS: localhost,127.0.0.1
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-local-minio-user}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-local-only-password}
+      MINIO_BUCKET: ${MINIO_BUCKET:-evidence-local}
+      CLAMAV_HOST: clamav
+      CLAMAV_PORT: "3310"
+      MAILPIT_HOST: mailpit
+      MAILPIT_PORT: "1025"
+    volumes:
+      - .:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  minio-data:

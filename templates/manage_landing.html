@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_title %}Manage Your Submission — Token Budget Platform{% endblock %}
+{% block heading %}Manage Your Submission{% endblock %}
+
+{% block content %}
+<div id="manage-exchange" aria-live="polite" aria-atomic="true">
+  {# JavaScript-enabled path: script extracts hash fragment and exchanges #}
+  <noscript>
+    <div class="notice notice--info" role="alert">
+      <h2>Open your management session without JavaScript</h2>
+      <p>
+        Paste the private management link or token you received when confirming
+        your submission. The link is exchanged for a short session; the token
+        itself is never stored by the platform.
+      </p>
+      <form method="post" action="{% url 'manage' %}">
+        {% csrf_token %}
+        <p class="field">
+          <label for="id_token">Management link or token</label>
+          <input id="id_token" name="token" type="text" size="60" maxlength="512" required
+                 aria-describedby="id_token_hint">
+          <span id="id_token_hint" class="hint">
+            Invalid or expired links always produce the same message; we cannot
+            reveal whether a link ever existed.
+          </span>
+        </p>
+        <p class="form-actions">
+          <button type="submit" class="button">Open management session</button>
+        </p>
+      </form>
+      <h2>Lost your link?</h2>
+      <p>
+        If you provided an email address during submission, you can request a
+        recovery link below. The response is the same whether or not an email
+        is on file.
+      </p>
+      <form method="post" action="{% url 'manage' %}">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="recover">
+        <p class="field">
+          <label for="id_recovery_email">Contact email</label>
+          <input id="id_recovery_email" name="recovery_email" type="email" maxlength="320" required>
+        </p>
+        <p class="field">
+          <label for="id_recovery_reference">Record reference</label>
+          <input id="id_recovery_reference" name="recovery_reference" type="text" size="40" maxlength="64" required>
+        </p>
+        <p class="form-actions">
+          <button type="submit" class="button">Send recovery link</button>
+        </p>
+      </form>
+    </div>
+  </noscript>
+
+  {# JS-visible: shown during exchange, then replaced with redirect #}
+  <div id="manage-loading" class="manage-loading" hidden>
+    <p role="status">Verifying your management link…</p>
+  </div>
+
+  <div id="manage-error" class="notice notice--error" hidden role="alert">
+    <h2>Unable to access submission</h2>
+    <p id="manage-error-message">
+      The management link is invalid or has expired.
+    </p>
+    <p>
+      If you previously provided an email address, you can
+      <a href="/manage/recovery/">request a new management link</a>.
+    </p>
+  </div>
+</div>
+
+<script type="module">
+// First-party script: extract fragment capability and POST once for session exchange.
+// The capability is in the URL hash to keep it out of HTTP access logs and referrers.
+(function() {
+  'use strict';
+
+  const hash = window.location.hash;
+  if (!hash) {
+    return; // No fragment; show noscript content naturally
+  }
+
+  const params = new URLSearchParams(hash.substring(1));
+  const token = params.get('capability');
+
+  if (!token || !/^[0-9a-f]{64}$/i.test(token)) {
+    showError('The management link format is not recognized.');
+    return;
+  }
+
+  // Show loading state
+  const loadingEl = document.getElementById('manage-loading');
+  if (loadingEl) loadingEl.hidden = false;
+
+  // Clear the hash immediately to avoid accidental sharing via copy/paste
+  history.replaceState(null, '', window.location.pathname);
+
+  // POST the token once to exchange for a session
+  fetch('/api/v1/management-sessions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ token: token }),
+    credentials: 'same-origin',
+  })
+  .then(function(response) {
+    if (response.ok) {
+      return response.json().then(function(data) {
+        // Redirect to clean session URL
+        window.location.href = data.redirect_url || '/manage/session/';
+      });
+    } else {
+      showError(
+        'The management link is invalid or has expired. ' +
+        'If you previously provided an email address, you can request a recovery link.'
+      );
+    }
+  })
+  .catch(function() {
+    showError(
+      'A network error occurred. Please check your connection and try again.'
+    );
+  });
+
+  function showError(message) {
+    const loadingEl = document.getElementById('manage-loading');
+    const errorEl = document.getElementById('manage-error');
+    const messageEl = document.getElementById('manage-error-message');
+    if (loadingEl) loadingEl.hidden = true;
+    if (errorEl) errorEl.hidden = false;
+    if (messageEl) messageEl.textContent = message;
+  }
+})();
+</script>
+{% endblock %}
