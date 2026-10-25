@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block page_title %}Compare Token Budgets | Token Budget Platform{% endblock %}
+{% block heading %}Compare Token Budgets{% endblock %}
+
+{% block content %}
+  {% if error %}
+  <section class="error-summary" role="alert" aria-labelledby="compare-error-heading" tabindex="-1">
+    <h2 id="compare-error-heading">Comparison could not be performed</h2>
+    <p>{{ error }}</p>
+    <p><a href="{% url 'browse' %}">Browse published records</a> to choose two to five records.</p>
+  </section>
+  {% elif comparison %}
+  <section aria-labelledby="comparison-heading">
+    <h2 id="comparison-heading">Side-by-side comparison</h2>
+    <p class="table-instructions" id="comparison-description">This data table may scroll horizontally on narrow screens.
+    All compared values are shown in this semantic table, which remains fully usable without JavaScript.</p>
+    <div class="table-scroll" tabindex="0" role="region" aria-labelledby="comparison-heading" aria-describedby="comparison-description">
+      <table id="comparison-table">
+        <caption>Aligned comparison of {{ comparison.columns|length }} records</caption>
+        <thead>
+          <tr>
+            <th scope="col">Field</th>
+            {% for column in comparison.columns %}
+            <th scope="col"><a href="{% url 'record-detail' record_id=column.public_reference %}">{{ column.organization_name }} — {{ column.ai_product }}</a></th>
+            {% endfor %}
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in comparison.rows %}
+          <tr>
+            <th scope="row">{{ row.label }}</th>
+            {% for value in row.values %}
+            <td>{{ value }}</td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+          {% for row in comparison.metric_rows %}
+          <tr>
+            <th scope="row">{{ row.label }} (normalized)</th>
+            {% for value in row.values %}
+            <td>{{ value }}</td>
+            {% endfor %}
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% else %}
+  <section aria-labelledby="compare-intro-heading">
+    <h2 id="compare-intro-heading">Compare records</h2>
+    <p>Choose two to five published records to compare. From the <a href="{% url 'browse' %}">browse page</a>,
+    open a record and use its link to build a comparison URL of the form:</p>
+    <p><code>/compare/?ids=&lt;reference-1&gt;,&lt;reference-2&gt;</code></p>
+  </section>
+  {% endif %}
+{% endblock %}

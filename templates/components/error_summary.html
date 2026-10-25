@@ -1,0 +1,11 @@
+{% if error_summary_items %}
+<section id="error-summary" class="error-summary" tabindex="-1" role="alert" aria-labelledby="error-summary-heading" data-error-summary>
+  <h2 id="error-summary-heading">There is a problem</h2>
+  <p>Review the following fields before continuing.</p>
+  <ul>
+    {% for error in error_summary_items %}
+      <li><a href="#{{ error.field_id }}">{{ error.message }}</a></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}

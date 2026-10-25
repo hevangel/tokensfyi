@@ -1,0 +1,10 @@
+.git
+.kiro
+session_history
+.env
+.venv
+__pycache__
+.pytest_cache
+.ruff_cache
+staticfiles
+frontend/node_modules

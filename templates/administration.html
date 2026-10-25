@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block page_title %}Administration | Token Budget Platform{% endblock %}
+{% block heading %}Administration{% endblock %}
+
+{% block content %}
+  <p>Signed in as {{ username }}.</p>
+
+  {% if message %}
+  <p class="status" role="status" aria-live="polite">{{ message }}</p>
+  {% endif %}
+
+  <section aria-labelledby="provision-heading">
+    <h2 id="provision-heading">Provision a staff account</h2>
+    <form method="post" action="{% url 'administration' %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="provision_staff">
+      <p class="field">
+        <label for="id_new_username">Username</label>
+        <input id="id_new_username" name="new_username" type="text" maxlength="150" required>
+      </p>
+      <p class="field">
+        <label for="id_new_password">Initial password</label>
+        <input id="id_new_password" name="new_password" type="password" autocomplete="new-password" required>
+      </p>
+      <p class="field">
+        <label for="id_new_role">Role</label>
+        <select id="id_new_role" name="new_role">
+          <option value="MODERATOR">Moderator</option>
+          <option value="ADMINISTRATOR">Administrator</option>
+        </select>
+      </p>
+      <p class="form-actions"><button type="submit" class="button">Provision</button></p>
+    </form>
+  </section>
+
+  {% if provisioned %}
+  <section class="callout" aria-labelledby="provisioned-heading">
+    <h2 id="provisioned-heading">Account provisioned: {{ provisioned.username }}</h2>
+    <p>Authenticator provisioning URI (shown once):</p>
+    <p><code>{{ provisioned.totp_provisioning_uri }}</code></p>
+    <p>Recovery codes (shown once — store them now):</p>
+    <ul>
+      {% for code in provisioned.recovery_codes %}
+      <li><code>{{ code }}</code></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <section aria-labelledby="staff-heading">
+    <h2 id="staff-heading">Staff accounts</h2>
+    <ul>
+      {% for person in staff %}
+      <li>{{ person.username }} — {{ person.role }}{% if not person.is_active %} (inactive){% endif %}</li>
+      {% endfor %}
+    </ul>
+  </section>
+
+  <section aria-labelledby="values-heading">
+    <h2 id="values-heading">Controlled values (active)</h2>
+    <div class="table-scroll" tabindex="0" role="region" aria-labelledby="values-heading">
+      <table>
+        <caption>Active controlled vocabulary values</caption>
+        <thead>
+          <tr><th scope="col">Kind</th><th scope="col">Code</th><th scope="col">Label</th></tr>
+        </thead>
+        <tbody>
+          {% for value in controlled_values %}
+          <tr><td>{{ value.kind }}</td><td>{{ value.code }}</td><td>{{ value.label }}</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block page_title %}{{ detail.record.organization_name }} — {{ detail.record.ai_product }} | Token Budget Platform{% endblock %}
+{% block heading %}{{ detail.record.organization_name }}: {{ detail.record.ai_product }}{% endblock %}
+
+{% block content %}
+  {% if detail.disputed %}
+  <p class="status status-disputed">{% include "components/status.html" with status_kind="disputed" status_icon="▲" status_label="DISPUTED" %} An open community report is under review for this record.</p>
+  {% endif %}
+
+  <section aria-labelledby="detail-heading">
+    <h2 id="detail-heading">Record detail</h2>
+    <dl class="profile-metadata">
+      <dt>Organization</dt>
+      <dd><a href="{% url 'organization-profile' slug=detail.organization_slug %}">{{ detail.record.organization_name }}</a></dd>
+      <dt>Organization size band</dt><dd>{{ detail.record.organization_size_band }}</dd>
+      <dt>Organization region</dt><dd>{{ detail.record.organization_region }}</dd>
+      <dt>Model provider</dt><dd>{{ detail.record.model_provider }}</dd>
+      <dt>AI product</dt><dd>{{ detail.record.ai_product }}</dd>
+      <dt>Workload category</dt><dd>{{ detail.record.workload_category }}</dd>
+      <dt>Budget scope</dt><dd>{{ detail.record.budget_scope }}</dd>
+      <dt>Token budget</dt><dd>{{ detail.record.token_budget }} tokens</dd>
+      <dt>Input token allocation</dt><dd>{{ detail.record.input_tokens|default_if_none:"Not provided" }}</dd>
+      <dt>Output token allocation</dt><dd>{{ detail.record.output_tokens|default_if_none:"Not provided" }}</dd>
+      <dt>Reporting period</dt><dd>{{ detail.record.reporting_start|date:"Y-m-d" }} to {{ detail.record.reporting_end|date:"Y-m-d" }} ({{ detail.record.reporting_timezone }})</dd>
+      <dt>Token usage</dt><dd>{{ detail.record.token_usage|default_if_none:"Not provided" }}</dd>
+      <dt>Cost</dt>
+      <dd>
+        {% if detail.record.cost_minor_units %}{{ detail.record.cost_minor_units }} minor units ({{ detail.record.cost_currency }}, basis: {{ detail.record.cost_basis }}){% else %}Not provided{% endif %}
+      </dd>
+      <dt>Verification status</dt>
+      <dd>{% include "components/status.html" with status_kind=detail.record.verification_status|lower status_icon="●" status_label=detail.record.verification_status %}</dd>
+      <dt>Status definition</dt><dd>{{ detail.record.verification_status_definition }}</dd>
+      <dt>Published</dt><dd>{{ detail.record.publication_date|date:"Y-m-d"|default_if_none:"Not published" }}</dd>
+      <dt>Last reviewed</dt><dd>{{ detail.record.last_reviewed_date|date:"Y-m-d"|default_if_none:"Not reviewed" }}</dd>
+      <dt>Source date</dt><dd>{{ detail.record.source_date|date:"Y-m-d" }}</dd>
+      <dt>Correction date</dt>
+      <dd>{% if detail.correction_date %}{{ detail.correction_date|date:"Y-m-d" }} (this record has been corrected){% else %}None{% endif %}</dd>
+      <dt>Staleness</dt>
+      <dd>{% if detail.record.is_stale %}Stale — more than 12 calendar months past the reporting period{% else %}Current{% endif %}</dd>
+      <dt>Contributor attribution</dt><dd>{{ detail.record.contributor_attribution }}</dd>
+    </dl>
+  </section>
+
+  {% if detail.record.methodology_notes %}
+  <section aria-labelledby="methodology-heading">
+    <h2 id="methodology-heading">Methodology notes</h2>
+    <p>{{ detail.record.methodology_notes }}</p>
+  </section>
+  {% endif %}
+
+  {% if detail.metrics %}
+  <section aria-labelledby="metrics-heading">
+    <h2 id="metrics-heading">Normalized metrics</h2>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Normalized metrics" aria-describedby="metrics-description">
+      <p id="metrics-description" class="table-instructions">This data table may scroll horizontally on narrow screens.</p>
+      <table>
+        <caption>Normalized metrics for this record</caption>
+        <thead>
+          <tr>
+            <th scope="col">Metric</th>
+            <th scope="col">Value</th>
+            <th scope="col">Formula</th>
+            <th scope="col">Source values</th>
+            <th scope="col">Methodology version</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for metric in detail.metrics %}
+          <tr>
+            <td>{{ metric.metric_type }}</td>
+            <td>{{ metric.value }}</td>
+            <td>{{ metric.formula_code }}</td>
+            <td>{{ metric.source_values|default_if_none:"Not provided" }}</td>
+            <td>{{ metric.methodology }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% endif %}
+
+  <section aria-labelledby="actions-heading">
+    <h2 id="actions-heading">Actions</h2>
+    <ul>
+      <li><a href="{% url 'community-report' %}?record={{ detail.record.public_reference }}">Report a problem with this record</a></li>
+      <li><a href="{% url 'compare' %}?ids={{ detail.record.public_reference }}">Add to comparison</a> (open a record on the browse page to collect two or more)</li>
+    </ul>
+  </section>
+
+  <p><a href="{% url 'browse' %}">Back to browse</a></p>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block page_title %}{{ journey }} | Token Budget Platform{% endblock %}
+{% block heading %}{{ journey }}{% endblock %}
+
+{% block content %}
+  <p>This local foundation route is ready for the application workflow implementation.</p>
+  <form class="text-spacing-safe" method="get" action="">
+    {% include "components/field.html" with field_id="journey-query" field_name="query" field_label="Optional search term" field_type="search" field_help="Use a descriptive organization, provider, or product name." %}
+    <div class="form-actions">
+      <button type="submit">Continue with this search</button>
+      <a href="/">Return to the platform home page</a>
+    </div>
+  </form>
+  {% include "components/table.html" with table_id="journey-example" table_caption="Journey information" table_description="This data table may scroll horizontally on narrow screens. Use the column headings to understand each value." table_headers=table_headers table_rows=table_rows %}
+{% endblock %}

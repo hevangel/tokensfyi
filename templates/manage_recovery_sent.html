@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block page_title %}Recovery Requested | Token Budget Platform{% endblock %}
+{% block heading %}Check your email{% endblock %}
+
+{% block content %}
+  <section aria-labelledby="recovery-sent-heading" aria-live="polite">
+    <h2 id="recovery-sent-heading">If a contact email is bound to that record, a recovery link is on its way</h2>
+    <p>The response is identical whether or not an email is on file, so this page confirms only
+    that your request was processed.</p>
+    <p><a href="{% url 'manage' %}">Back to management</a></p>
+  </section>
+{% endblock %}

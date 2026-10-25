@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block page_title %}Home | Token Budget Platform{% endblock %}
+{% block heading %}Token Budget Platform{% endblock %}
+
+{% block content %}
+  <p>Public benchmarks for organizational AI token budgets.</p>
+  <p>{% include "components/status.html" with status_kind="neutral" status_icon="i" status_label=version status_role="status" %}</p>
+  <section aria-labelledby="home-start-heading">
+    <h2 id="home-start-heading">Start exploring</h2>
+    <p><a href="/browse/">Browse published token-budget benchmarks</a> or <a href="/submit/">submit a token-budget benchmark</a>.</p>
+    <p><a href="/api/v1/health/live">Check API health status</a></p>
+  </section>
+{% endblock %}

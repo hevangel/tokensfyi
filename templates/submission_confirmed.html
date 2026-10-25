@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block page_title %}Submission Confirmed | Token Budget Platform{% endblock %}
+{% block heading %}Submission confirmed{% endblock %}
+
+{% block content %}
+  <section aria-labelledby="confirmed-heading">
+    <h2 id="confirmed-heading">Your submission is in the moderation queue</h2>
+    <p>Record: {{ result.organization_name }} — {{ result.ai_product }} ({{ result.token_budget }} tokens,
+    {{ result.reporting_start }} to {{ result.reporting_end }}). It will appear publicly only after a
+    moderator approves it; until then its verification status is {{ result.verification_status }}.</p>
+  </section>
+
+  <section class="callout" aria-labelledby="manage-link-heading">
+    <h2 id="manage-link-heading">Your private management link — shown only this once</h2>
+    <p>Use this link to view the status, amend values, or withdraw the submission:</p>
+    <p><code id="management-link">{{ manage_url }}</code></p>
+    <p><a class="button" href="{{ manage_url }}">Open your management page now</a></p>
+    <p>The platform stores no copy of this link. If you lose it and provided a contact email,
+    you can request recovery from the <a href="{% url 'manage' %}">management landing page</a>.</p>
+  </section>
+{% endblock %}

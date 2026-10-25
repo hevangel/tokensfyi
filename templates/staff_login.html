@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block page_title %}Staff Sign In | Token Budget Platform{% endblock %}
+{% block heading %}Staff sign in{% endblock %}
+
+{% block content %}
+  {% if error %}
+  <section class="error-summary" role="alert" aria-labelledby="login-error-heading" tabindex="-1">
+    <h2 id="login-error-heading">Sign-in failed</h2>
+    <p>{{ error }}</p>
+  </section>
+  {% endif %}
+
+  <section aria-labelledby="login-heading">
+    <h2 id="login-heading">Privileged access</h2>
+    <p>Staff accounts require the account password plus a time-based one-time code or a
+    recovery code. Five failed attempts within 15 minutes lock the account for 15 minutes.</p>
+  </section>
+
+  <form method="post" action="{% url 'staff-login' %}">
+    {% csrf_token %}
+    <p class="field">
+      <label for="id_username">Username</label>
+      <input id="id_username" name="username" type="text" autocomplete="username" maxlength="150" required>
+    </p>
+    <p class="field">
+      <label for="id_password">Password</label>
+      <input id="id_password" name="password" type="password" autocomplete="current-password" required>
+    </p>
+    <p class="field">
+      <label for="id_totp_code">Authenticator code</label>
+      <input id="id_totp_code" name="totp_code" type="text" inputmode="numeric" maxlength="6"
+             autocomplete="one-time-code" aria-describedby="id_totp_hint">
+      <span id="id_totp_hint" class="hint">Provide either the authenticator code or a recovery code.</span>
+    </p>
+    <p class="field">
+      <label for="id_recovery_code">Recovery code (if authenticator unavailable)</label>
+      <input id="id_recovery_code" name="recovery_code" type="text" maxlength="32">
+    </p>
+    <p class="form-actions">
+      <button type="submit" class="button">Sign in</button>
+    </p>
+  </form>
+{% endblock %}

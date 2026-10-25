@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block page_title %}Manage Your Submission | Token Budget Platform{% endblock %}
+{% block heading %}Manage your submission{% endblock %}
+
+{% block content %}
+  {% if error %}
+  <section class="error-summary" role="alert" aria-labelledby="manage-error-heading" tabindex="-1">
+    <h2 id="manage-error-heading">There is a problem</h2>
+    <p>{{ error }}</p>
+  </section>
+  {% endif %}
+  {% if outcome %}
+  <p class="status status-ok" role="status" aria-live="polite">{{ outcome }}</p>
+  {% endif %}
+
+  <section aria-labelledby="status-heading">
+    <h2 id="status-heading">Submission status</h2>
+    <dl class="profile-metadata">
+      <dt>Organization</dt><dd>{{ status.submission_data.organization_name }}</dd>
+      <dt>AI product</dt><dd>{{ status.submission_data.ai_product }}</dd>
+      <dt>Token budget</dt><dd>{{ status.submission_data.token_budget }}</dd>
+      <dt>Reporting period</dt><dd>{{ status.submission_data.reporting_start }} to {{ status.submission_data.reporting_end }}</dd>
+      <dt>Publication state</dt><dd>{% include "components/status.html" with status_kind=status.publication_state|lower status_icon="●" status_label=status.publication_state %}</dd>
+      <dt>Verification status</dt><dd>{% include "components/status.html" with status_kind=status.verification_status|lower status_icon="●" status_label=status.verification_status %}</dd>
+      <dt>Current version</dt><dd>{{ status.current_version }}</dd>
+      <dt>Publicly visible</dt><dd>{{ status.is_public|yesno:"Yes,No" }}</dd>
+      {% if status.withdrawn_at %}<dt>Withdrawn at</dt><dd>{{ status.withdrawn_at }}</dd>{% endif %}
+      {% if status.correction_date %}<dt>Correction date</dt><dd>{{ status.correction_date }}</dd>{% endif %}
+    </dl>
+  </section>
+
+  {% if status.moderation_feedback %}
+  <section aria-labelledby="feedback-heading">
+    <h2 id="feedback-heading">Moderation feedback</h2>
+    <ul>
+      {% for feedback in status.moderation_feedback %}
+      <li>{{ feedback.action }} ({{ feedback.reason_code }}) — {{ feedback.decided_at }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  {% if not status.is_withdrawn %}
+  <section aria-labelledby="amend-heading">
+    <h2 id="amend-heading">Amend values</h2>
+    <p>Amending appends a new version (history is preserved) and re-enters moderation review.
+    Fill in only the fields you want to change.</p>
+    <form method="post" action="{% url 'manage-session' %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="amend">
+      <div class="filter-grid">
+        <p class="filter-field"><label for="amend_token_budget">Token budget</label>
+          <input id="amend_token_budget" name="amend_token_budget" type="number" min="1" step="1"></p>
+        <p class="filter-field"><label for="amend_input_tokens">Input token allocation</label>
+          <input id="amend_input_tokens" name="amend_input_tokens" type="number" min="0" step="1"></p>
+        <p class="filter-field"><label for="amend_output_tokens">Output token allocation</label>
+          <input id="amend_output_tokens" name="amend_output_tokens" type="number" min="0" step="1"></p>
+        <p class="filter-field"><label for="amend_token_usage">Actual token usage</label>
+          <input id="amend_token_usage" name="amend_token_usage" type="number" min="0" step="1"></p>
+        <p class="filter-field"><label for="amend_reporting_start">Reporting period start</label>
+          <input id="amend_reporting_start" name="amend_reporting_start" type="date"></p>
+        <p class="filter-field"><label for="amend_reporting_end">Reporting period end</label>
+          <input id="amend_reporting_end" name="amend_reporting_end" type="date"></p>
+        <p class="filter-field"><label for="amend_source_date">Source date</label>
+          <input id="amend_source_date" name="amend_source_date" type="date"></p>
+        <p class="filter-field"><label for="amend_methodology_notes">Methodology notes</label>
+          <input id="amend_methodology_notes" name="amend_methodology_notes" type="text" maxlength="4000"></p>
+      </div>
+      <p class="form-actions"><button type="submit" class="button">Submit amendment</button></p>
+    </form>
+  </section>
+
+  <section aria-labelledby="withdraw-heading">
+    <h2 id="withdraw-heading">Withdraw the submission</h2>
+    <p>Withdrawal removes the record from public display immediately and permanently revokes
+    this management session. This cannot be undone.</p>
+    <form method="post" action="{% url 'manage-session' %}">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="withdraw">
+      <p class="form-actions"><button type="submit" class="button button-danger">Withdraw permanently</button></p>
+    </form>
+  </section>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block page_title %}Moderation Queue | Token Budget Platform{% endblock %}
+{% block heading %}Moderation queue{% endblock %}
+
+{% block content %}
+  <p>Signed in as {{ username }}. <a href="{% url 'staff-login' %}">Sign in as a different account</a></p>
+
+  {% if message %}
+  <p class="status" role="status" aria-live="polite">{{ message }}</p>
+  {% endif %}
+
+  {% if entries %}
+  <section class="table-section" aria-labelledby="queue-heading">
+    <h2 id="queue-heading">Open cases (priority order)</h2>
+    <p id="queue-table-description" class="table-instructions">This data table may scroll horizontally on narrow screens.</p>
+    <div class="table-scroll" tabindex="0" role="region" aria-labelledby="queue-heading" aria-describedby="queue-table-description">
+      <table>
+        <caption>Moderation queue</caption>
+        <thead>
+          <tr>
+            <th scope="col">Priority</th>
+            <th scope="col">Source</th>
+            <th scope="col">Category</th>
+            <th scope="col">Organization</th>
+            <th scope="col">AI product</th>
+            <th scope="col">Token budget</th>
+            <th scope="col">Opened</th>
+            <th scope="col">Lease</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for entry in entries %}
+          <tr>
+            <td>{{ entry.priority }}</td>
+            <td>{{ entry.source }}</td>
+            <td>{{ entry.category }}</td>
+            <td>{{ entry.organization_name }}</td>
+            <td>{{ entry.ai_product }}</td>
+            <td>{{ entry.token_budget }}</td>
+            <td>{{ entry.opened_at|date:"Y-m-d H:i" }}</td>
+            <td>
+              {% if entry.lease_expires_at %}Held until {{ entry.lease_expires_at|date:"H:i" }}{% else %}—{% endif %}
+            </td>
+            <td>
+              <form method="post" action="{% url 'moderation' %}" class="inline-form">
+                {% csrf_token %}
+                <input type="hidden" name="case_id" value="{{ entry.case_id }}">
+                <label class="visually-hidden" for="decision-{{ forloop.counter }}">Decision for case {{ entry.case_id }}</label>
+                <select id="decision-{{ forloop.counter }}" name="decision">
+                  <option value="APPROVE">Approve</option>
+                  <option value="REJECT">Reject</option>
+                  <option value="REQUEST_CHANGES">Request changes</option>
+                  <option value="SUPPRESS">Suppress</option>
+                  <option value="RESOLVE_DISPUTE">Resolve dispute</option>
+                </select>
+                <label class="visually-hidden" for="reason-{{ forloop.counter }}">Reason code</label>
+                <input id="reason-{{ forloop.counter }}" name="reason_code" type="text" size="14" maxlength="100" placeholder="Reason code">
+                <label class="visually-hidden" for="target-{{ forloop.counter }}">Resulting status for dispute resolution</label>
+                <select id="target-{{ forloop.counter }}" name="target_status">
+                  <option value="">Resolution status…</option>
+                  <option value="UNVERIFIED">Unverified</option>
+                  <option value="EVIDENCE_SUBMITTED">Evidence submitted</option>
+                  <option value="VERIFIED">Verified</option>
+                  <option value="REJECTED">Rejected</option>
+                </select>
+                <label class="visually-hidden" for="rationale-{{ forloop.counter }}">Rationale</label>
+                <input id="rationale-{{ forloop.counter }}" name="rationale" type="text" size="18" maxlength="4000" placeholder="Rationale">
+                <button type="submit" name="action" value="decide" class="button">Decide</button>
+                <button type="submit" name="action" value="claim" class="button-link">Claim</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  {% else %}
+  <section aria-labelledby="queue-empty-heading">
+    <h2 id="queue-empty-heading">No open cases</h2>
+    <p>The moderation queue is empty.</p>
+  </section>
+  {% endif %}
+{% endblock %}

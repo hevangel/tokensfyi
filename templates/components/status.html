@@ -1,0 +1,4 @@
+<span class="status status--{{ status_kind|default:'neutral' }}"{% if status_role %} role="{{ status_role }}"{% endif %}>
+  <span class="status__icon" aria-hidden="true">{{ status_icon|default:'•' }}</span>
+  <span class="status__label">{{ status_label }}</span>
+</span>

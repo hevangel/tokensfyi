@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block page_title %}Report a Record | Token Budget Platform{% endblock %}
+{% block heading %}Report a record{% endblock %}
+
+{% block content %}
+  {% if errors %}
+  <section class="error-summary" role="alert" aria-labelledby="report-errors-heading" tabindex="-1">
+    <h2 id="report-errors-heading">There is a problem</h2>
+    <ul>
+      {% for error in errors %}
+      <li>{{ error.message }}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+
+  <section aria-labelledby="report-intro-heading">
+    <h2 id="report-intro-heading">Report a problem with a published record</h2>
+    <p>Reports are reviewed by moderators. Reports alleging personal-data or sensitive-data
+    exposure remove the record from public display immediately while under review.
+    Do not include personal data or secrets in the explanation.</p>
+  </section>
+
+  <form method="post" action="{% url 'community-report' %}" class="report-form">
+    {% csrf_token %}
+    <p class="field">
+      <label for="id_record_reference">Record reference <span aria-hidden="true">*</span></label>
+      <input id="id_record_reference" name="record_reference" type="text" size="40" maxlength="64" required
+             value="{{ record_reference }}" aria-describedby="id_record_reference_hint">
+      <span id="id_record_reference_hint" class="hint">The record reference appears on the record's public page.</span>
+    </p>
+    <p class="field">
+      <label for="id_category">Category <span aria-hidden="true">*</span></label>
+      <select id="id_category" name="category" required>
+        <option value="">Select a category</option>
+        {% for category in categories %}
+        <option value="{{ category.value }}">{{ category.label }}</option>
+        {% endfor %}
+      </select>
+    </p>
+    <p class="field">
+      <label for="id_explanation">Explanation <span aria-hidden="true">*</span></label>
+      <textarea id="id_explanation" name="explanation" rows="6" minlength="10" maxlength="4000" required
+                aria-describedby="id_explanation_hint">{{ explanation|default_if_none:'' }}</textarea>
+      <span id="id_explanation_hint" class="hint">Between 10 and 4000 characters. Stored encrypted; shown only to moderators.</span>
+    </p>
+    <p class="form-actions">
+      <button type="submit" class="button">File report</button>
+    </p>
+  </form>
+{% endblock %}
